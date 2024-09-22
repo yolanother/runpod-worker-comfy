@@ -87,8 +87,8 @@ RUN git submodule update --init --recursive
 RUN find /comfyui/custom_nodes -name requirements.txt -exec pip3 install --upgrade --no-cache-dir -r {} \;
 
 # Make sure none of the requirements triggerd a downgrade/breakge of core modules
-RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
-    pip3 install --upgrade --no-cache-dir xformers --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install --upgrade --no-cache-dir xformers --index-url https://download.pytorch.org/whl/cu121
 
 # Log a list of all of the directories under custom nodes
 RUN ls /comfyui/custom_nodes
