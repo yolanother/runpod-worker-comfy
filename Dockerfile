@@ -28,6 +28,8 @@ WORKDIR /comfyui
 RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
     && pip3 install --upgrade -r requirements.txt
 
+RUN pip3 install -U xformers --index-url https://download.pytorch.org/whl/cu121
+
 # Install runpod
 RUN pip3 install runpod requests
 
@@ -72,11 +74,21 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
 # Remove /comfyui/custom_nodes and clone https://github.com/yolanother/comfyui-custom-nodes in its place
 RUN rm -rf /comfyui/custom_nodes && git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
 
+# if /comfyui/custom_nodes/Upgraded-Depth-Anything-V2 exists, make the one_click_instal.sh executable and run it in that directory
+RUN if [ -d "/comfyui/custom_nodes/Upgraded-Depth-Anything-V2" ]; then \
+      chmod +x /comfyui/custom_nodes/Upgraded-Depth-Anything-V2/one_click_install.sh && \
+      /comfyui/custom_nodes/Upgraded-Depth-Anything-V2/one_click_install.sh; \
+    fi
+
 # Pull and update submodules
 RUN git submodule update --init --recursive
 
 # Find all requirements.txt files in /comfyui/custom_nodes and install the dependencies
 RUN find /comfyui/custom_nodes -name requirements.txt -exec pip3 install --upgrade --no-cache-dir -r {} \;
+
+# Make sure none of the requirements triggerd a downgrade/breakge of core modules
+RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
+    pip3 install --upgrade --no-cache-dir xformers --index-url https://download.pytorch.org/whl/cu121
 
 # Log a list of all of the directories under custom nodes
 RUN ls /comfyui/custom_nodes
