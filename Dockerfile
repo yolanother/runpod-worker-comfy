@@ -69,6 +69,15 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
       wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors; \
     fi
 
+# Remove /comfyui/custom_nodes and clone https://github.com/yolanother/comfyui-custom-nodes in its place
+RUN rm -rf /comfyui/custom_nodes && git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
+
+# Pull and update submodules
+RUN git submodule update --init --recursive
+
+# Find all requirements.txt files in /comfyui/custom_nodes and install the dependencies
+RUN find /comfyui/custom_nodes -name requirements.txt -exec pip3 install --upgrade --no-cache-dir -r {} \;
+
 # Stage 3: Final image
 FROM base as final
 

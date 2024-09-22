@@ -11,16 +11,6 @@ if [ -d "/runpod-volume/models" ] && [ -d "/comfyui/models" ] && [ ! -L "/comfyu
     cd /comfyui && ln -s /runpod-volume/models models
 fi
 
-# if /comfyui/custom_nodes is not already a symlink and is a directory remove it.
-if [ -d "/runpod-volume/models" ] && [ -d "/comfyui/custom_nodes" ] && [ ! -L "/comfyui/custom_nodes" ]; then
-    echo "runpod-worker-comfy: Removing /comfyui/custom_nodes directory and creating symlink to /runpod-volume/custom_nodes"
-    rm -rf /comfyui/custom_nodes
-    cd /comfyui && ln -s /runpod-volume/custom_nodes custom_nodes
-fi
-
-cd /comfyui
-find ./ -name requirements.txt -exec sh -c 'echo "$1 $(dirname "$1")"; cd "$(dirname "$1")" && pip install -r requirements.txt' _ {} \;
-
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
     echo "runpod-worker-comfy: Starting ComfyUI"
