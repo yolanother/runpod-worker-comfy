@@ -11,6 +11,22 @@ if [ -d "/runpod-volume/models" ] && [ -d "/comfyui/models" ] && [ ! -L "/comfyu
     cd /comfyui && ln -s /runpod-volume/models models
 fi
 
+# Print a list of all custom_nodes in the /comfyui/custom_nodes directory
+if [ -d "/comfyui/custom_nodes" ]; then
+    echo "runpod-worker-comfy: Custom Nodes:"
+    ls /comfyui/custom_nodes
+else
+    echo "runpod-worker-comfy: No custom nodes found"
+fi
+
+# List all of the models in /comfyui/models/checkpoints
+if [ -d "/comfyui/models/checkpoints" ]; then
+    echo "runpod-worker-comfy: Models:"
+    ls /comfyui/models/checkpoints
+else
+    echo "runpod-worker-comfy: No models found"
+fi
+
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
     echo "runpod-worker-comfy: Starting ComfyUI"

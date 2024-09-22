@@ -78,6 +78,9 @@ RUN git submodule update --init --recursive
 # Find all requirements.txt files in /comfyui/custom_nodes and install the dependencies
 RUN find /comfyui/custom_nodes -name requirements.txt -exec pip3 install --upgrade --no-cache-dir -r {} \;
 
+# Log a list of all of the directories under custom nodes
+RUN ls /comfyui/custom_nodes
+
 # Stage 3: Final image
 FROM base as final
 
