@@ -37,9 +37,12 @@ git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nod
 cd /comfyui/custom_nodes
 git submodule update --init --recursive
 
-cd /comfyui
-
 log "Using pip version $(pip3 --version) for python version $(python3 --version)"
+
+log "Creating virtual environment..."
+cd /comfyui
+python3 -m venv venv
+source venv/bin/activate
 
 log "Installing ninja"
 # (Optional) Makes the build much faster
@@ -50,6 +53,7 @@ pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url h
 
 log "Installing xformers..."
 pip3 install -U xformers --index-url https://download.pytorch.org/whl/cu121
+pip3 install --upgrade opencv-python opencv-python-headless
 
 cd /comfyui
 log "Installing Base ComfyUI Python dependencies..."

@@ -64,6 +64,9 @@ fi
 ls -lah /comfyui/*.py
 ls -lah /comfyui/custom_nodes/
 
+cd /comfyui
+source venv/bin/activate
+
 log "Starting Comfy UI"
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
