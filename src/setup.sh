@@ -6,7 +6,11 @@ echo "runpod-worker-comfy: Setting up ComfyUI and its Dependencies..."
 cd /comfyui/custom_nodes
 # Open each directory and run pip3 intall --upgrade -r requirements.txt
 for dir in */; do
-    echo "runpod-worker-comfy: Installing custom node dependencies for ${dir}"
+    # if requirements.txt exists install it
+    if [ ! -f "${dir}requirements.txt" ]; then
+        continue
+    fi
+    echo "runpod-worker-comfy: ==> ${dir}"
     cd ${dir}
     pip3 install --upgrade -r requirements.txt
     cd ..
