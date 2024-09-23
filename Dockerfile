@@ -48,8 +48,9 @@ ADD src/extra_model_paths.yaml ./
 WORKDIR /
 
 # Add the start and the handler
-ADD src/start.sh src/rp_handler.py test_input.json ./
+ADD src/start.sh src/rp_handler.py test_input.json src/setup.sh ./
 RUN chmod +x /start.sh
+RUN chmod +x /setup.sh
 
 # Stage 2: Download models
 FROM base as downloader
