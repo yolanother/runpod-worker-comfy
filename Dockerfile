@@ -50,12 +50,12 @@ RUN pip3 install -U xformers --index-url https://download.pytorch.org/whl/cu121
 RUN pip3 install -r requirements.txt
 RUN for dir in */; do \
     if [ ! -f "${dir}requirements.txt" ]; then \
-      continue \
-    fi \
-    log "==> ${dir}" \
-    cd ${dir} \
-    pip3 install --upgrade -r requirements.txt \
-    cd .. \
+      continue; \
+    fi; \
+    echo "==> ${dir}"; \
+    cd ${dir}; \
+    pip3 install --upgrade -r requirements.txt; \
+    cd ..; \
   done
 
 RUN pip3 install llama-cpp-python
