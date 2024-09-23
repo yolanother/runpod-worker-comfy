@@ -72,9 +72,4 @@ done
 log "Installing llama-cpp-python..."
 pip3 install llama-cpp-python || { log "ERROR: Failed to install llama-cpp-python"; exit 1; }
 
-log "Setting up symlinks for models..."
-cd /comfyui
-rm -rf models
-ln -s /runpod-volume/models
-
 log "Setup script completed successfully!"
