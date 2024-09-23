@@ -18,20 +18,6 @@ RUN apt-get update && apt-get install -y \
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-# Clone ComfyUI repository
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
-
-# Remove /comfyui/custom_nodes and clone https://github.com/yolanother/comfyui-custom-nodes in its place
-RUN rm -rf /comfyui/custom_nodes
-RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
-
-WORKDIR /comfyui/custom_nodes
-# Pull and update submodules
-RUN git submodule update --init --recursive
-
-# Change working directory to ComfyUI
-WORKDIR /comfyui
-
 # Install ComfyUI dependencies
 RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
     && pip3 install --upgrade -r requirements.txt
