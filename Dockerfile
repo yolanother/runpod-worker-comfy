@@ -19,9 +19,6 @@ ADD src/extra_model_paths.yaml ./
 ADD src/start.sh src/rp_handler.py test_input.json src/setup.sh ./
 RUN chmod +x /start.sh /setup.sh
 
-# Install ComfyUI dependencies and custom node requirements
-WORKDIR /comfyui
-
 RUN /setup.sh
 
 # Link models directory to network volume
