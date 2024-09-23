@@ -1,31 +1,82 @@
-# Fail on error
+#!/bin/bash
+
+# Exit script on any error
 set -e
 
-echo "runpod-worker-comfy: Setting up ComfyUI and its Dependencies..."
+# Log function to print bold light blue text in a box with the venv name before the command
+log() {
+    if [ -z "$VIRTUAL_ENV" ]; then
+        venv_display="[ComfyUI Installer] "
+    else
+        venv_display="[ComfyUI Installer - $(basename $VIRTUAL_ENV)]"
+    fi
 
+    message="$venv_display $1"
+    length=${#message}
+
+    # Print the box
+    echo -e "\e[1;34m"
+    printf "+%*s+\n" $((length + 2)) | tr ' ' '-'
+    printf "| %s |\n" "$message"
+    printf "+%*s+\n" $((length + 2)) | tr ' ' '-'
+    echo -e "\e[0m"
+}
+
+if [ ! -d /comfyui ] || [ ! -d /comfyui/.git ]; then
+    cd /
+    log "Cloning ComfyUI repository..."
+    rm -rf /comfyui
+    git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
+else
+    cd /comfyui
+    log "Updating ComfyUI repository in `pwd`..."
+    git pull --rebase
+fi
+
+log "Updating custom nodes"
+rm -rf /comfyui/custom_nodes
+git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
 cd /comfyui/custom_nodes
-# Open each directory and run pip3 intall --upgrade -r requirements.txt
+git submodule update --init --recursive
+
+cd /comfyui
+
+log "Using pip version $(pip3 --version) for python version $(python3 --version)"
+
+log "Installing ninja"
+# (Optional) Makes the build much faster
+pip3 install ninja
+
+log "Installing PyTorch, TorchVision, and other dependencies..."
+pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+log "Installing xformers..."
+pip3 install -U xformers --index-url https://download.pytorch.org/whl/cu121
+
+cd /comfyui
+log "Installing Base ComfyUI Python dependencies..."
+pip3 install -r requirements.txt || { log "ERROR: Failed to install ComfyUI dependencies from requirements.txt"; exit 1; }
+
+log "Installing custom nodes dependencies..."
+cd /comfyui/custom_nodes
+# Open each directory and run pip33 intall --upgrade -r requirements.txt
 for dir in */; do
     # if requirements.txt exists install it
     if [ ! -f "${dir}requirements.txt" ]; then
         continue
     fi
-    echo "runpod-worker-comfy: ==> ${dir}"
+    log "==> ${dir}"
     cd ${dir}
-    pip3 install --upgrade -r requirements.txt
+    pip3 install --upgrade -r requirements.txt || { log "ERROR: Failed to install custom node dependencies for ${dir}"; }
     cd ..
 done
 
-echo "runpod-worker-comfy: Installing custom node dependencies for Upgraded-Depth-Anything-V2"
-# if /comfyui/custom_nodes/Upgraded-Depth-Anything-V2 exists, make the one_click_instal.sh executable and run it in that directory
-if [ -d "/comfyui/custom_nodes/Upgraded-Depth-Anything-V2" ]; then
-    chmod +x /comfyui/custom_nodes/Upgraded-Depth-Anything-V2/one_click_install.sh
-    /comfyui/custom_nodes/Upgraded-Depth-Anything-V2/one_click_install.sh
-fi
+log "Installing llama-cpp-python..."
+pip3 install llama-cpp-python || { log "ERROR: Failed to install llama-cpp-python"; exit 1; }
 
-# Install ComfyUI dependencies
-echo "runpod-worker-comfy: Installing ComfyUI dependencies"
-pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-pip3 install --upgrade -r requirements.txt
+log "Setting up symlinks for models..."
+cd /comfyui
+rm -rf models
+ln -s /runpod-volume/models
 
-pip3 install -U xformers --index-url https://download.pytorch.org/whl/cu121
+log "Setup script completed successfully!"
