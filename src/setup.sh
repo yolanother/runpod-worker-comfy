@@ -1,6 +1,8 @@
 # Fail on error
 set -e
 
+echo "runpod-worker-comfy: Setting up ComfyUI and its Dependencies..."
+
 cd /comfyui/custom_nodes
 # Open each directory and run pip3 intall --upgrade -r requirements.txt
 for dir in */; do

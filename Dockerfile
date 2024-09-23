@@ -80,23 +80,7 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
       wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors; \
     fi
 
-# if /comfyui/custom_nodes/Upgraded-Depth-Anything-V2 exists, make the one_click_instal.sh executable and run it in that directory
-RUN if [ -d "/comfyui/custom_nodes/Upgraded-Depth-Anything-V2" ]; then \
-      chmod +x /comfyui/custom_nodes/Upgraded-Depth-Anything-V2/one_click_install.sh && \
-      /comfyui/custom_nodes/Upgraded-Depth-Anything-V2/one_click_install.sh; \
-    fi
-
-
-# Find all requirements.txt files in /comfyui/custom_nodes and install the dependencies
-RUN find /comfyui/custom_nodes -name requirements.txt
-RUN find /comfyui/custom_nodes -name requirements.txt -exec pip3 install --upgrade --no-cache-dir -r {} \;
-
-# Make sure none of the requirements triggerd a downgrade/breakge of core modules
-RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-RUN pip3 install --upgrade --no-cache-dir xformers --index-url https://download.pytorch.org/whl/cu121
-
-# Log a list of all of the directories under custom nodes
-RUN ls /comfyui/custom_nodes
+RUN /setup.sh
 
 # Stage 3: Final image
 FROM base as final
