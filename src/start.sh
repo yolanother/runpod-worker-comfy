@@ -42,19 +42,23 @@ else
     echo "runpod-worker-comfy: No models found"
 fi
 
-cd /comfyui/custom_nodes
-# Open each directory and run pip33 intall --upgrade -r requirements.txt
-for dir in */; do
-    # if requirements.txt exists install it
-    if [ ! -f "${dir}requirements.txt" ]; then
-        log "--> No requirements.txt found for ${dir}"
-        continue
-    fi
-    log "==> ${dir}"
-    cd ${dir}
-    pip3 install --upgrade -r requirements.txt || { log "ERROR: Failed to install custom node dependencies for ${dir}"; }
-    cd ..
-done
+
+if [ ! -f /dependencies-installed ]; then
+    cd /comfyui/custom_nodes
+    # Open each directory and run pip33 intall --upgrade -r requirements.txt
+    for dir in */; do
+        # if requirements.txt exists install it
+        if [ ! -f "${dir}requirements.txt" ]; then
+            log "--> No requirements.txt found for ${dir}"
+            continue
+        fi
+        log "==> ${dir}"
+        cd ${dir}
+        pip3 install --upgrade -r requirements.txt || { log "ERROR: Failed to install custom node dependencies for ${dir}"; }
+        cd ..
+    done
+    touch /dependencies-installed
+fi
 
 # Temporary debugging to validate build contents
 ls -lah /comfyui/*.py
