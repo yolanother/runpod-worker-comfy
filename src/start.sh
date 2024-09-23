@@ -64,6 +64,7 @@ fi
 ls -lah /comfyui/*.py
 ls -lah /comfyui/custom_nodes/
 
+log "Starting Comfy UI"
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
     echo "runpod-worker-comfy: Starting ComfyUI"

@@ -30,17 +30,8 @@ RUN git submodule update --init --recursive
 
 # Install ComfyUI dependencies and custom node requirements
 WORKDIR /comfyui
-RUN pip3 install ninja && \
-    pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
-    pip3 install -U xformers --index-url https://download.pytorch.org/whl/cu121 && \
-    pip3 install runpod requests llama-cpp-python && \
-    pip3 install -r requirements.txt && \
-    for dir in */; do \
-        if [ -f "${dir}requirements.txt" ]; then \
-            echo "==> Installing requirements in ${dir}"; \
-            pip3 install --upgrade -r ${dir}requirements.txt; \
-        fi; \
-    done
+
+RUN /setup.sh
 
 # Link models directory to network volume
 RUN rm -rf models && ln -s /runpod-volume/models /comfyui/models
