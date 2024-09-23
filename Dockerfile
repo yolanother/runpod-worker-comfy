@@ -19,15 +19,6 @@ ADD src/extra_model_paths.yaml ./
 ADD src/start.sh src/rp_handler.py test_input.json src/setup.sh ./
 RUN chmod +x /start.sh /setup.sh
 
-# Clone ComfyUI and custom nodes repositories
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui && \
-    rm -rf /comfyui/custom_nodes && \
-    git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
-
-# Initialize submodules for custom nodes
-WORKDIR /comfyui/custom_nodes
-RUN git submodule update --init --recursive
-
 # Install ComfyUI dependencies and custom node requirements
 WORKDIR /comfyui
 
