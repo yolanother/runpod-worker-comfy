@@ -15,11 +15,9 @@ log() {
     length=${#message}
 
     # Print the box
-    echo -e "\e[1;34m"
     printf "+%*s+\n" $((length + 2)) | tr ' ' '-'
     printf "| %s |\n" "$message"
     printf "+%*s+\n" $((length + 2)) | tr ' ' '-'
-    echo -e "\e[0m"
 }
 
 if [ ! -d /comfyui ] || [ ! -d /comfyui/.git ]; then
