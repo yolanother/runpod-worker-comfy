@@ -21,9 +21,6 @@ RUN chmod +x /start.sh /setup.sh
 
 RUN /setup.sh
 
-# Link models directory to network volume
-RUN rm -rf models && ln -s /runpod-volume/models /comfyui/models
-
 # Stage 2: Final image
 FROM base as final
 
