@@ -21,6 +21,14 @@ RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 # Clone ComfyUI repository
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
 
+# Remove /comfyui/custom_nodes and clone https://github.com/yolanother/comfyui-custom-nodes in its place
+RUN rm -rf /comfyui/custom_nodes
+RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
+
+WORKDIR /comfyui/custom_nodes
+# Pull and update submodules
+RUN git submodule update --init --recursive
+
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
@@ -71,19 +79,15 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
       wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors; \
     fi
 
-# Remove /comfyui/custom_nodes and clone https://github.com/yolanother/comfyui-custom-nodes in its place
-RUN rm -rf /comfyui/custom_nodes && git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
-
 # if /comfyui/custom_nodes/Upgraded-Depth-Anything-V2 exists, make the one_click_instal.sh executable and run it in that directory
 RUN if [ -d "/comfyui/custom_nodes/Upgraded-Depth-Anything-V2" ]; then \
       chmod +x /comfyui/custom_nodes/Upgraded-Depth-Anything-V2/one_click_install.sh && \
       /comfyui/custom_nodes/Upgraded-Depth-Anything-V2/one_click_install.sh; \
     fi
 
-# Pull and update submodules
-RUN git submodule update --init --recursive
 
 # Find all requirements.txt files in /comfyui/custom_nodes and install the dependencies
+RUN find /comfyui/custom_nodes -name requirements.txt
 RUN find /comfyui/custom_nodes -name requirements.txt -exec pip3 install --upgrade --no-cache-dir -r {} \;
 
 # Make sure none of the requirements triggerd a downgrade/breakge of core modules
