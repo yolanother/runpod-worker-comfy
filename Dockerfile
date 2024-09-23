@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
     wget && \
     apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
+# Install runpod dependencies
+RUN pip3 install runpod requests
+
 # Add configuration files and scripts
 ADD src/extra_model_paths.yaml ./ 
 ADD src/start.sh src/rp_handler.py test_input.json src/setup.sh ./
