@@ -27,6 +27,10 @@ else
     echo "runpod-worker-comfy: No models found"
 fi
 
+# Temporary debugging to validate build contents
+ls -lah /comfyui/*.py
+ls -lah /comfyui/custom_nodes/
+
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
     echo "runpod-worker-comfy: Starting ComfyUI"
