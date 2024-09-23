@@ -1,4 +1,19 @@
 #!/usr/bin/env bash
+log() {
+    if [ -z "$VIRTUAL_ENV" ]; then
+        venv_display="[ComfyUI Init] "
+    else
+        venv_display="[ComfyUI Init - $(basename $VIRTUAL_ENV)]"
+    fi
+
+    message="$venv_display $1"
+    length=${#message}
+
+    # Print the box
+    printf "+%*s+\n" $((length + 2)) | tr ' ' '-'
+    printf "| %s |\n" "$message"
+    printf "+%*s+\n" $((length + 2)) | tr ' ' '-'
+}
 
 # Use libtcmalloc for better memory management
 TCMALLOC="$(ldconfig -p | grep -Po "libtcmalloc.so.\d" | head -n 1)"
@@ -26,6 +41,20 @@ if [ -d "/comfyui/models/checkpoints" ]; then
 else
     echo "runpod-worker-comfy: No models found"
 fi
+
+cd /comfyui/custom_nodes
+# Open each directory and run pip33 intall --upgrade -r requirements.txt
+for dir in */; do
+    # if requirements.txt exists install it
+    if [ ! -f "${dir}requirements.txt" ]; then
+        log "--> No requirements.txt found for ${dir}"
+        continue
+    fi
+    log "==> ${dir}"
+    cd ${dir}
+    pip3 install --upgrade -r requirements.txt || { log "ERROR: Failed to install custom node dependencies for ${dir}"; }
+    cd ..
+done
 
 # Temporary debugging to validate build contents
 ls -lah /comfyui/*.py
