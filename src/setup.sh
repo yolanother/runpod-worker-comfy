@@ -72,4 +72,5 @@ done
 log "Installing llama-cpp-python..."
 pip3 install llama-cpp-python || { log "ERROR: Failed to install llama-cpp-python"; exit 1; }
 
+touch /dependencies-installed
 log "Setup script completed successfully!"
