@@ -64,7 +64,34 @@ RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
       wget --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors; \
     fi
 
-RUN /setup.sh
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
+RUN rm -rf /comfyui/custom_nodes
+RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
+
+WORKDIR /comfyui/custom_nodes
+RUN git submodule update --init --recursive
+
+WORKDIR /comfyui
+RUN pip3 install ninja
+RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install -U xformers --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install -r requirements.txt
+RUN for dir in */; do \
+    if [ ! -f "${dir}requirements.txt" ]; then \
+      continue \
+    fi \
+    log "==> ${dir}" \
+    cd ${dir} \
+    pip3 install --upgrade -r requirements.txt \
+    cd .. \
+  done
+
+RUN pip3 install llama-cpp-python
+
+WORKDIR /comfyui
+RUN rm -rf models
+RUN ln -s /runpod-volume/models
+
 
 # Stage 3: Final image
 FROM base as final
