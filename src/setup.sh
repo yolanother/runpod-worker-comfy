@@ -48,6 +48,9 @@ log "Installing ninja"
 # (Optional) Makes the build much faster
 pip3 install ninja
 
+log "Installing runpod and requests"
+pip3 install runpod requests
+
 log "Installing PyTorch, TorchVision, and other dependencies..."
 pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
