@@ -10,6 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y \
     python3.10 \
     python3-pip \
+    python3-venv \
     git \
     wget && \
     apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
