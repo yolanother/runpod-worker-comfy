@@ -36,7 +36,6 @@ RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-u
 
 WORKDIR /comfyui/custom_nodes
 RUN pip3 install ninja && \
-    pip3 install -r requirements.txt && \
     for dir in */; do \
         if [ -f "${dir}requirements.txt" ]; then \
             echo "==> Installing requirements in ${dir}"; \
