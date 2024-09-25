@@ -24,6 +24,7 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
 RUN echo "Installing custom nodes..."
 RUN rm -rf /comfyui/custom_nodes
 RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
+RUN touch /comfyui/custom_nodes/.git/__init__.py
 RUN touch /comfyui/custom_nodes/__init__.py
 
 WORKDIR /comfyui/custom_nodes
