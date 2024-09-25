@@ -31,7 +31,7 @@ WORKDIR /comfyui/custom_nodes
 RUN pip3 install ninja && \
     for dir in */; do \
         if [ -f "${dir}requirements.txt" ]; then \
-            echo "==> Installing requirements in ${dir}"; \
+            echo "==> Installing requirements for ${dir} <=="; \
             pip3 install --upgrade -r ${dir}requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121 ; \
         fi; \
     done
