@@ -63,10 +63,6 @@ fi
 
 echo "Tagged the commit with version: $TAG"
 
-# Push the commit and the tag to the remote repository
-git push origin
-git push origin --tags
-
 if [ $? -ne 0 ]; then
     echo "Error: Failed to push the tag"
     exit 1
