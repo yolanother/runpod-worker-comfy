@@ -21,12 +21,31 @@ RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 # Clone ComfyUI repository
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
 
+RUN rm -rf /comfyui/custom_nodes
+RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
+
+WORKDIR /comfyui/custom_nodes
+RUN git submodule update --init --recursive
+
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
 # Install ComfyUI dependencies
 RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
     && pip3 install --upgrade -r requirements.txt
+
+WORKDIR /comfyui/custom_nodes
+RUN pip3 install ninja && \
+    pip3 install -r requirements.txt && \
+    for dir in */; do \
+        if [ -f "${dir}requirements.txt" ]; then \
+            echo "==> Installing requirements in ${dir}"; \
+            pip3 install --upgrade -r ${dir}requirements.txt; \
+        fi; \
+    done
+
+WORKDIR /comfyui
+
 
 # Install runpod
 RUN pip3 install runpod requests
