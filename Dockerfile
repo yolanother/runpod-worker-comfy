@@ -27,23 +27,22 @@ RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom
 WORKDIR /comfyui/custom_nodes
 RUN git submodule update --init --recursive
 
-# Change working directory to ComfyUI
-WORKDIR /comfyui
-
-# Install ComfyUI dependencies
-RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
-    && pip3 install --upgrade -r requirements.txt
-
 WORKDIR /comfyui/custom_nodes
 RUN pip3 install ninja && \
     for dir in */; do \
         if [ -f "${dir}requirements.txt" ]; then \
             echo "==> Installing requirements in ${dir}"; \
-            pip3 install --upgrade -r ${dir}requirements.txt; \
+            pip3 install --upgrade -r ${dir}requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121 ; \
         fi; \
     done
 
+RUN touch /dependencies-installed
+
 WORKDIR /comfyui
+
+# Install ComfyUI dependencies
+RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
+    && pip3 install --upgrade -r requirements.txt
 
 
 # Install runpod
