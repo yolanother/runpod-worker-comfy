@@ -12,7 +12,7 @@ from io import BytesIO
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
 # Maximum number of API check attempts
-COMFY_API_AVAILABLE_MAX_RETRIES = 500
+COMFY_API_AVAILABLE_MAX_RETRIES = 6000
 # Time to wait between poll attempts in milliseconds
 COMFY_POLLING_INTERVAL_MS = os.environ.get("COMFY_POLLING_INTERVAL_MS", 250)
 # Maximum number of poll attempts
@@ -78,11 +78,11 @@ def check_server(url, retries=500, delay=50):
     Returns:
     bool: True if the server is reachable within the given number of retries, otherwise False
     """
-
+    
     for i in range(retries):
         try:
             response = requests.get(url)
-
+    
             # If the response status code is 200, the server is up and running
             if response.status_code == 200:
                 print(f"runpod-worker-comfy - API is reachable")
@@ -90,7 +90,11 @@ def check_server(url, retries=500, delay=50):
         except requests.RequestException as e:
             # If an exception occurs, the server may not be ready
             pass
-
+    
+        # Log message every 5 seconds
+        if (i + 1) % (5000 // delay) == 0:
+            print("Still waiting on the server to come up...")
+    
         # Wait for the specified delay before retrying
         time.sleep(delay / 1000)
 
