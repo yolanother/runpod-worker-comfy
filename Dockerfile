@@ -18,9 +18,11 @@ RUN apt-get update && apt-get install -y \
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
+ADD "https://api.github.com/repos/comfyanonymous/ComfyUI/commits?per_page=1" latest_commit
 # Clone ComfyUI repository
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
 
+ADD "https://api.github.com/repos/yolanother/comfyui-custom-nodes/commits?per_page=1" latest_commit
 RUN echo "Installing custom nodes..."
 RUN rm -rf /comfyui/custom_nodes
 RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes

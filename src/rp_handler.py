@@ -85,7 +85,7 @@ def check_server(url, retries=500, delay=50):
     
             # If the response status code is 200, the server is up and running
             if response.status_code == 200:
-                print(f"runpod-worker-comfy - API is reachable")
+                print(f"runpod-worker-comfy - API is reachable after {(i + 1) * delay} ms.")
                 return True
         except requests.RequestException as e:
             # If an exception occurs, the server may not be ready
