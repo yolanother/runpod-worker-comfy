@@ -87,20 +87,8 @@ WORKDIR /
 ADD src/start.sh src/rp_handler.py test_input.json ./
 RUN chmod +x /start.sh
 
-# Stage 2: Download models
-FROM base as downloader
-
-ARG HUGGINGFACE_ACCESS_TOKEN
-ARG MODEL_TYPE
-
-# Change working directory to ComfyUI
-WORKDIR /comfyui
-
 # Stage 3: Final image
 FROM base as final
-
-# Copy models from stage 2 to the final image
-COPY --from=downloader /comfyui/models /comfyui/models
 
 # Start the container
 CMD /start.sh
