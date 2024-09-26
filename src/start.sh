@@ -4,6 +4,8 @@
 TCMALLOC="$(ldconfig -p | grep -Po "libtcmalloc.so.\d" | head -n 1)"
 export LD_PRELOAD="${TCMALLOC}"
 
+mkdir -p /tmp/ckpts
+
 # If /comfyui/models is not already a symlink and is a directory remove it. Also ensure that /runpod-volume/models exists
 if [ -d "/runpod-volume/models" ] && [ -d "/comfyui/models" ] && [ ! -L "/comfyui/models" ]; then
     echo "runpod-worker-comfy: Removing /comfyui/models directory and creating symlink to /runpod-volume/models"

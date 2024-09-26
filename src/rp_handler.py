@@ -271,6 +271,8 @@ def process_output_images(outputs, job_id):
         }
     else:
         print("runpod-worker-comfy - the image does not exist in the output folder")
+        # Log a directory listing of all the files in the output folder
+        print(f"runpod-worker-comfy - output folder contents: {os.listdir(COMFY_OUTPUT_PATH)}")
         return {
             "status": "error",
             "message": f"the image does not exist in the specified output folder: {local_image_path}",
