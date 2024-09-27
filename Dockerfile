@@ -18,37 +18,10 @@ RUN apt-get update && apt-get install -y \
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-ADD "https://api.github.com/repos/comfyanonymous/ComfyUI/commits?per_page=1" latest_commit
-# Clone ComfyUI repository
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
-
-ADD "https://api.github.com/repos/yolanother/comfyui-custom-nodes/commits?per_page=1" latest_commit
-RUN echo "Installing custom nodes..."
-RUN rm -rf /comfyui/custom_nodes
-RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
-RUN touch /comfyui/custom_nodes/.git/__init__.py
-RUN touch /comfyui/custom_nodes/__init__.py
-
-WORKDIR /comfyui/custom_nodes
-RUN git submodule update --init --recursive
-
-WORKDIR /comfyui/custom_nodes
-RUN pip3 install ninja && \
-    for dir in */; do \
-        if [ -f "${dir}requirements.txt" ]; then \
-            echo "==> Installing requirements in ${dir}"; \
-            pip3 install --upgrade -r ${dir}requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121 ; \
-        fi; \
-    done
-
-RUN touch /dependencies-installed
-
-WORKDIR /comfyui
-
 # Install ComfyUI dependencies
-RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
-    && pip3 install --upgrade -r requirements.txt
+RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
+RUN pip3 install ninja
 RUN pip3 install --no-cache-dir importlib_metadata
 RUN pip3 install --no-cache-dir huggingface_hub
 RUN pip3 install --no-cache-dir scipy
@@ -73,9 +46,35 @@ RUN pip3 install --no-cache-dir albumentations
 RUN pip3 install --no-cache-dir scikit-learn
 RUN pip3 install --no-cache-dir matplotlib
 RUN pip3 install --no-cache-dir 'numpy<2'
+    
 
 # Install runpod
-RUN pip3 install runpod requests
+RUN pip3 install runpod requests websocket-client
+
+ADD "https://api.github.com/repos/comfyanonymous/ComfyUI/commits?per_page=1" latest_commit
+# Clone ComfyUI repository
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git /comfyui
+
+ADD "https://api.github.com/repos/yolanother/comfyui-custom-nodes/commits?per_page=1" latest_commit
+RUN echo "Installing custom nodes..."
+RUN rm -rf /comfyui/custom_nodes
+RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
+RUN touch /comfyui/custom_nodes/.git/__init__.py
+RUN touch /comfyui/custom_nodes/__init__.py
+
+WORKDIR /comfyui/custom_nodes
+RUN git submodule update --init --recursive
+
+WORKDIR /comfyui/custom_nodes
+RUN for dir in */; do \
+        if [ -f "${dir}requirements.txt" ]; then \
+            echo "==> Installing requirements in ${dir}"; \
+            pip3 install --upgrade -r ${dir}requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121 ; \
+        fi; \
+    done
+
+WORKDIR /comfyui
+RUN pip3 install --upgrade -r requirements.txt
 
 # Support for the network volume
 # ADD src/extra_model_paths.yaml ./
@@ -84,7 +83,7 @@ RUN pip3 install runpod requests
 WORKDIR /
 
 # Add the start and the handler
-ADD src/start.sh src/rp_handler.py test_input.json ./
+ADD src/start.sh src/rp_handler.py src/comfy_websockets.py test_input.json ./
 RUN chmod +x /start.sh
 
 # Stage 3: Final image
