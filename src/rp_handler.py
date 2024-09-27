@@ -8,6 +8,12 @@ import os
 import requests
 import base64
 from io import BytesIO
+import websocket
+import uuid
+import json
+import urllib.request
+import urllib.parse
+from comfy_websocket import ComfyWebsocket
 
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
@@ -204,7 +210,7 @@ def base64_encode(img_path):
         return f"{encoded_string}"
 
 
-def process_output_images(outputs, job_id):
+def process_output_images(comfy, output_images, job_id):
     """
     This function takes the "outputs" from image generation and the job ID,
     then determines the correct way to return the image, either as a direct URL
@@ -212,8 +218,7 @@ def process_output_images(outputs, job_id):
     environment configuration.
 
     Args:
-        outputs (dict): A dictionary containing the outputs from image generation,
-                        typically includes node IDs and their respective output data.
+        outputs (array): A list of file names for output images.
         job_id (str): The unique identifier for the job.
 
     Returns:
@@ -236,42 +241,14 @@ def process_output_images(outputs, job_id):
     # The path where ComfyUI stores the generated images
     COMFY_OUTPUT_PATH = os.environ.get("COMFY_OUTPUT_PATH", "/comfyui/output")
 
-    output_images = []
-
-    for node_id, node_output in outputs.items():
-        if "images" in node_output:
-            for image in node_output["images"]:
-                if image['type'] == 'output':
-                    output_images.append(os.path.join(image["subfolder"], image["filename"]))
-
     print(f"runpod-worker-comfy - image generation is done")
 
     encoded_images = []
     for image in output_images:
-        print("runpod-worker-comfy - encoding image: ", image)
-        # expected image output folder
-        local_image_path = f"{COMFY_OUTPUT_PATH}/{output_images}"
-
-        print(f"runpod-worker-comfy - {local_image_path}")
-        if os.path.exists(local_image_path):
-            if os.environ.get("BUCKET_ENDPOINT_URL", False):
-                # URL to image in AWS S3
-                image = rp_upload.upload_image(job_id, local_image_path)
-                print(
-                    "runpod-worker-comfy - the image was generated and uploaded to AWS S3"
-                )
-            else:
-                # base64 image
-                image = base64_encode(local_image_path)
-                print(
-                    "runpod-worker-comfy - the image was generated and converted to base64"
-                )
-            encoded_images.append(image)
-        else:
-            print("runpod-worker-comfy - the image does not exist in the output folder")
-            # Log a directory listing of all the files in the output folder
-            print(f"runpod-worker-comfy - output folder contents: {os.listdir(COMFY_OUTPUT_PATH)}")
-
+        print("runpod-worker-comfy - encoding image: ", image['filename'])
+        image_data = comfy.get_image(image)
+        encoded_images.append(base64.b64encode(image_data).decode("utf-8"))
+        
     # The image is in the output folder
     
     if encoded_images and len(encoded_images) > 0:
@@ -279,6 +256,11 @@ def process_output_images(outputs, job_id):
             "status": "success",
             "message": "Image generated successfully",
             "images": encoded_images,
+        }
+    else:
+        return {
+            "status": "success",
+            "message": "No images saved."
         }
 
 def handler(job):
@@ -318,35 +300,11 @@ def handler(job):
     if upload_result["status"] == "error":
         return upload_result
 
-    # Queue the workflow
-    try:
-        queued_workflow = queue_workflow(workflow)
-        prompt_id = queued_workflow["prompt_id"]
-        print(f"runpod-worker-comfy - queued workflow with ID {prompt_id}")
-    except Exception as e:
-        return {"error": f"Error queuing workflow: {str(e)}"}
-
-    # Poll for completion
-    print(f"runpod-worker-comfy - wait until image generation is complete")
-    retries = 0
-    try:
-        while retries < COMFY_POLLING_MAX_RETRIES:
-            history = get_history(prompt_id)
-
-            # Exit the loop if we have found the history
-            if prompt_id in history and history[prompt_id].get("outputs"):
-                break
-            else:
-                # Wait before trying again
-                time.sleep(COMFY_POLLING_INTERVAL_MS / 1000)
-                retries += 1
-        else:
-            return {"error": "Max retries reached while waiting for image generation"}
-    except Exception as e:
-        return {"error": f"Error waiting for image generation: {str(e)}"}
-
+    job_id = job["id"];
+    comfy = ComfyWebsocket(COMFY_HOST, job_id)
+    images = comfy.get_images(workflow)
     # Get the generated image and return it as URL in an AWS bucket or as base64
-    images_result = process_output_images(history[prompt_id].get("outputs"), job["id"])
+    images_result = process_output_images(comfy, images, job_id)
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}
 
