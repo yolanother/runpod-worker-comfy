@@ -13,7 +13,6 @@ import uuid
 import json
 import urllib.request
 import urllib.parse
-from comfy_websocket import ComfyWebsocket
 
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
@@ -28,6 +27,111 @@ COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
 # see https://docs.runpod.io/docs/handler-additional-controls#refresh-worker
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
+
+
+class ComfyWebsocket:
+    def __init__(self, server_address, client_id):
+        """
+        Initialize a new ComfyWebsocket instance.
+
+        Args:
+            self.server_address (str): The address of the server to connect to.
+        """
+        self.server_address = server_address
+        self.client_id = client_id
+        self.ws = websocket.WebSocket()
+        self.ws.connect("ws://{}/ws?clientId={}".format(self.server_address, self.client_id))
+
+    def queue_prompt(self, prompt):
+        """
+        Queue a prompt to the server and retrieve the response.
+
+        Args:
+          prompt (str): The prompt to be queued.
+
+        Returns:
+          dict: The server's response to the queued prompt.
+        """
+        p = {"prompt": prompt, "self.client_id": self.client_id}
+        data = json.dumps(p).encode('utf-8')
+        req = urllib.request.Request("http://{}/prompt".format(self.server_address), data=data)
+        return json.loads(urllib.request.urlopen(req).read())
+
+    def get_image(self, data={"filename": "", "subfolder": "", "type": ""}):
+        """
+        Retrieve an image from the server based on the provided data.
+
+        Args:
+            data (dict): A dictionary containing the following keys:
+                - filename (str): The name of the file to retrieve.
+                - subfolder (str): The subfolder where the file is located.
+                - type (str): The type of the file.
+
+        Returns:
+            bytes: The
+            raw image data retrieved from the server.
+        """
+        url_values = urllib.parse.urlencode(data)
+        with urllib.request.urlopen("http://{}/view?{}".format(self.server_address, url_values)) as response:
+            return response.read()
+
+    def get_history(self, prompt_id):
+        """
+        Retrieve the history of a given prompt using its ID
+
+        Args:
+        prompt_id (str): The ID of the prompt whose history is to be retrieved
+
+        Returns:
+        dict: The history of the prompt, containing all the processing steps and results
+        """
+        with urllib.request.urlopen(f"http://{self.server_address}/history/{prompt_id}") as response:
+            return json.loads(response.read())
+
+    def get_images(self, prompt):
+        ws = websocket.WebSocket()
+        ws.connect("ws://{}/ws?clientId={}".format(self.server_address, self.client_id))
+
+        try:
+            prompt_id = self.queue_prompt(prompt)['prompt_id']
+            output_images = {}
+            current_node = ""
+            while True:
+                history = self.get_history(prompt_id)
+                if history[prompt_id] is not None:
+                    break
+                out = ws.recv()
+                if isinstance(out, str):
+                    message = json.loads(out)
+                    if message['type'] == 'executing':
+                        data = message['data']
+                        if data['prompt_id'] == prompt_id:
+                            if data['node'] is None:
+                                break  # Execution is done
+                            else:
+                                current_node = data['node']
+                    elif message['type'] == 'error':
+                        raise Exception(message['data'])
+
+                else:
+                    if current_node == 'save_image_websocket_node':
+                        images_output = output_images.get(current_node, [])
+                        images_output.append(out[8:])
+                        output_images[current_node] = images_output
+
+            history = self.get_history(prompt_id)
+            images = []
+            # iterate over history[prompt_id]['output'] to get all of the output nodes
+            outputs = history[prompt_id]['outputs']
+            for node_id in outputs:
+                # iterate over the output nodes to get the image data
+                for image in outputs[node_id]['images']:
+                    if image['type'] == 'output':
+                        images.append(image)
+        finally:
+            ws.close()
+
+        return images
 
 
 def validate_input(job_input):
