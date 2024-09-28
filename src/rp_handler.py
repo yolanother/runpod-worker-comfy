@@ -171,7 +171,7 @@ def validate_input(job_input):
             )
 
     # Return validated data and no error
-    return {"workflow": workflow, "images": images}, None
+    return {"workflow": workflow, "images": images, "callback": job_input.get("callback", None)}, None
 
 
 def check_server(url, retries=500, delay=50):
@@ -421,6 +421,12 @@ def handler(job):
     images_result = process_output_images(comfy, images, job_id)
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}
+
+    if validated_data["callback"] is not None:
+        # Send the result to the callback URL
+        callback_url = validated_data["callback"]
+        response = requests.post(callback_url, json=result)
+        print(f"runpod-worker-comfy - Callback response: {response.text}")
 
     return result
 
