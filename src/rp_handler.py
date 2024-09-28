@@ -1,6 +1,5 @@
 import runpod
 from runpod.serverless.utils import rp_upload
-import json
 import urllib.request
 import urllib.parse
 import time
@@ -9,7 +8,6 @@ import requests
 import base64
 from io import BytesIO
 import websocket
-import uuid
 import json
 import urllib.request
 import urllib.parse
@@ -350,6 +348,7 @@ def process_output_images(comfy, output_images, job_id):
     encoded_images = []
     for image in output_images:
         if os.environ.get("BUCKET_ENDPOINT_URL", False):
+            print(f"runpod-worker-comfy - uploading image: {image['filename']} to {os.environ.get("BUCKET_ENDPOINT_URL", False)}")
             output_image = os.path.join(image["subfolder"], image["filename"])
             local_image_path = f"{COMFY_OUTPUT_PATH}/{output_image}"
             # URL to image in AWS S3
