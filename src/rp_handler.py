@@ -349,9 +349,20 @@ def process_output_images(comfy, output_images, job_id):
 
     encoded_images = []
     for image in output_images:
-        print("runpod-worker-comfy - encoding image: ", image['filename'])
-        image_data = comfy.get_image(image)
-        encoded_images.append(base64.b64encode(image_data).decode("utf-8"))
+        if os.environ.get("BUCKET_ENDPOINT_URL", False):
+            output_image = os.path.join(image["subfolder"], image["filename"])
+            local_image_path = f"{COMFY_OUTPUT_PATH}/{output_image}"
+            # URL to image in AWS S3
+            image = rp_upload.upload_image(job_id, local_image_path)
+            encoded_images.append(image)
+            print(
+                "runpod-worker-comfy - the image was generated and uploaded to AWS S3"
+            )
+        else:
+            print("runpod-worker-comfy - encoding image: ", image['filename'])
+            image_data = comfy.get_image(image)
+            encoded_images.append(base64.b64encode(image_data).decode("utf-8"))
+        
         
     # The image is in the output folder
     
