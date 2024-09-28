@@ -423,7 +423,9 @@ def handler(job):
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}
 
-    if validated_data["callback"] is not None:
+    print("runpod-worker-comfy - job completed")
+    if 'callback' in validated_data and validated_data["callback"] is not None:
+        print(f"runpod-worker-comfy - Sending result to callback URL: {validated_data['callback']}")
         # Send the result to the callback URL
         callback_url = validated_data["callback"]
         response = requests.post(callback_url, json=result)
