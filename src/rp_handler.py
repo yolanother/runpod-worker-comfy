@@ -98,7 +98,7 @@ class ComfyWebsocket:
             current_node = ""
             while True:
                 history = self.get_history(prompt_id)
-                if history[prompt_id] is not None:
+                if prompt_id in history and history[prompt_id] is not None:
                     break
                 out = ws.recv()
                 if isinstance(out, str):
