@@ -354,6 +354,7 @@ def process_output_images(comfy, output_images, job_id):
             local_image_path = f"{COMFY_OUTPUT_PATH}/{output_image}"
             # URL to image in AWS S3
             image = rp_upload.upload_image(job_id, local_image_path)
+            image['url'] = image
             encoded_images.append(image)
             print(
                 "runpod-worker-comfy - the image was generated and uploaded to AWS S3"
