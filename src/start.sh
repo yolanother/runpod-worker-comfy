@@ -13,6 +13,12 @@ if [ -d "/runpod-volume/models" ] && [ -d "/comfyui/models" ] && [ ! -L "/comfyu
     cd /comfyui && ln -s /runpod-volume/models models
 fi
 
+if [ -d "/runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts" && [ ! -L "/comfyui/custom_nodes/comfyui_controlnet_aux/ckpts" ]]; then
+    echo "runpod-worker-comfy: Removing /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts directory and creating symlink to /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts"
+    rm -rf /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts
+    cd /comfyui/custom_nodes/comfyui_controlnet_aux && ln -s /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts ckpts
+fi
+
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
     echo "runpod-worker-comfy: Starting ComfyUI"
