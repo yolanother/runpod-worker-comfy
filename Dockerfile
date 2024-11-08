@@ -117,7 +117,7 @@ RUN chmod +x /start.sh
 # Stage 3: Final image
 FROM base as final
 
-RUN python3 -u /comfyui/main.py --quick-test-for-ci
+RUN python3 -u /comfyui/main.py --cpu --quick-test-for-ci
 
 # Start the container
 CMD /start.sh
