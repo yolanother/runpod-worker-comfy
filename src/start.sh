@@ -17,6 +17,9 @@ if [ -d "/runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts" && [ ! -L "/c
     echo "runpod-worker-comfy: Removing /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts directory and creating symlink to /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts"
     rm -rf /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts
     cd /comfyui/custom_nodes/comfyui_controlnet_aux && ln -s /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts ckpts
+elif [ ! -d "/runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts" ]; then
+    echo "runpod-worker-comfy: Creating /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts directory"
+    cd /comfyui/custom_nodes/comfyui_controlnet_aux && ln -s /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts ckpts
 fi
 
 # Serve the API and don't shutdown the container
