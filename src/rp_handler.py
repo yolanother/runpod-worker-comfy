@@ -401,6 +401,7 @@ def handler(job):
     # Make sure that the input is valid
     validated_data, error_message = validate_input(job_input)
     if error_message:
+        print(f"runpod-worker-comfy - error: {error_message}")
         return {"error": error_message}
 
     # Extract validated data
@@ -422,6 +423,8 @@ def handler(job):
 
     job_id = job["id"];
     comfy = ComfyWebsocket(COMFY_HOST, job_id)
+    print("runpod-worker-comfy - sending prompt to ComfyUI")
+    print(f"runpod-worker-comfy - workflow: {workflow}")
     images = comfy.get_images(workflow)
     # Get the generated image and return it as URL in an AWS bucket or as base64
     images_result = process_output_images(comfy, images, job_id)
