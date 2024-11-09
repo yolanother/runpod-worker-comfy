@@ -109,6 +109,8 @@ class ComfyWebsocket:
                             else:
                                 current_node = data['node']
                     elif message['type'] == 'error':
+                        # print the message as formatted json
+                        print(json.dumps(message, indent=4))
                         raise Exception(message['data'])
 
                 else:
