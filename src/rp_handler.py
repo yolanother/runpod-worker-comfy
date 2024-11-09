@@ -111,7 +111,7 @@ class ComfyWebsocket:
                     elif message['type'] == 'error':
                         # print the message as formatted json
                         print(json.dumps(message, indent=4))
-                        raise Exception(message['data'])
+                        raise Exception(message)
 
                 else:
                     if current_node == 'save_image_websocket_node':
