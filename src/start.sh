@@ -13,7 +13,7 @@ if [ -d "/runpod-volume/models" ] && [ -d "/comfyui/models" ] && [ ! -L "/comfyu
     cd /comfyui && ln -s /runpod-volume/models models
 fi
 
-if [ -d "/runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts" && [ ! -L "/comfyui/custom_nodes/comfyui_controlnet_aux/ckpts" ]]; then
+if [ -d "/runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts" ] && [ ! -L "/comfyui/custom_nodes/comfyui_controlnet_aux/ckpts" ]; then
     echo "runpod-worker-comfy: Removing /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts directory and creating symlink to /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts"
     rm -rf /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts
     cd /comfyui/custom_nodes/comfyui_controlnet_aux && ln -s /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts ckpts
