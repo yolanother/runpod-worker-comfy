@@ -100,6 +100,8 @@ RUN pip3 install --no-cache-dir 'trimesh[easy]'
 RUN pip3 install --no-cache-dir albumentations
 RUN pip3 install --no-cache-dir scikit-learn
 RUN pip3 install --no-cache-dir matplotlib
+RUN pip3 install --no-cache-dir accelerate
+RUN pip3 install --no-cache-dir diffusers
 RUN pip3 install --no-cache-dir 'numpy<2'
 
 RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
