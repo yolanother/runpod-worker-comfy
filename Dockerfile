@@ -106,6 +106,7 @@ RUN pip3 install --no-cache-dir 'numpy<2'
 RUN pip3 install --no-cache-dir OpenEXR
 RUN pip3 install --no-cache-dir Imath
 RUN pip3 install --no-cache-dir pathlib
+RUN pip3 install --no-cache-dir timm
 
 RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
