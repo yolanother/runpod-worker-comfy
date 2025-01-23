@@ -363,7 +363,7 @@ def process_output_images(comfy, output_images, job_id):
                 "subfolder": image['subfolder']
             })
             print(
-                "runpod-worker-comfy - the image was generated and uploaded to AWS S3"
+                "runpod-worker-comfy - the image was generated and uploaded to AWS S3 at %s" % url
             )
         else:
             print("runpod-worker-comfy - encoding image: ", image['filename'])
