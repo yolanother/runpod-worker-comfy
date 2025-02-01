@@ -31,6 +31,12 @@ elif [ ! -d "/runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts" ]; then
     cd /comfyui/custom_nodes/comfyui_controlnet_aux && ln -s /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts ckpts
 fi
 
+# Remove the comfy manager if it exists, we should have everything we need already.
+if [ -d "/comfyui/custom_nodes/ComfyUI-Manager" ]; then
+    echo "runpod-worker-comfy: Removing /comfyui/custom_nodes/ComfyUI-Manager directory"
+    rm -rf /comfyui/custom_nodes/ComfyUI-Manager
+fi
+
 # Serve the API and don't shutdown the container
 if [ "$SERVE_API_LOCALLY" == "true" ]; then
     echo "runpod-worker-comfy: Starting ComfyUI"

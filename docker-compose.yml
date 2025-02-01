@@ -8,6 +8,7 @@ services:
     ports:
       - "8000:8000"
       - "8188:8188"
+      - "11434:11434"
     runtime: nvidia
     volumes:
       - ./data/comfyui/output:/comfyui/output
