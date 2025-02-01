@@ -56,10 +56,10 @@ RUN pip3 install --no-cache-dir OpenEXR
 RUN pip3 install --no-cache-dir Imath
 RUN pip3 install --no-cache-dir pathlib
 RUN pip3 install --no-cache-dir timm
-RUN pip3 install --no-cache-dir ollama
 RUN pip3 install --no-cache-dir deepdiff
 RUN pip3 install --no-cache-dir surrealist
 RUN pip3 install --no-cache-dir aisuite
+RUN pip3 install --no-cache-dir ollama
 
 # Install runpod
 RUN pip3 install runpod requests websocket-client
