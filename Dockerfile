@@ -56,6 +56,10 @@ RUN pip3 install --no-cache-dir OpenEXR
 RUN pip3 install --no-cache-dir Imath
 RUN pip3 install --no-cache-dir pathlib
 RUN pip3 install --no-cache-dir timm
+RUN pip3 install --no-cache-dir ollama
+RUN pip3 install --no-cache-dir deepdiff
+RUN pip3 install --no-cache-dir surrealist
+RUN pip3 install --no-cache-dir aisuite
 
 # Install runpod
 RUN pip3 install runpod requests websocket-client
@@ -100,11 +104,5 @@ FROM base as final
 
 RUN python3 -u /comfyui/main.py --cpu --quick-test-for-ci
 
-# Install Ollama dependencies and Ollama itself
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull the required model
-RUN ollama pull deepseek-r1:8b
-
 # Ensure the Ollama service starts
-CMD ollama serve & /start.sh
+CMD /start.sh
