@@ -127,5 +127,9 @@ FROM base as final
 
 RUN python3 -u /comfyui/main.py --cpu --quick-test-for-ci
 
+# install ollama
+RUN curl -fsSL https://ollama.com/install.sh | sh
+RUN ollama pull deepseek-r1:8b
+
 # Start the container
 CMD /start.sh
