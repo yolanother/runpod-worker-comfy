@@ -6,11 +6,6 @@ export LD_PRELOAD="${TCMALLOC}"
 
 mkdir -p /tmp/ckpts
 
-# Install Ollama dependencies and Ollama itself
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull the required model
-ollama pull deepseek-r1:8b &
 
 # If /comfyui/models is not already a symlink and is a directory remove it. Also ensure that /runpod-volume/models exists
 if [ -d "/runpod-volume/models" ] && [ -d "/comfyui/models" ] && [ ! -L "/comfyui/models" ]; then
@@ -18,6 +13,14 @@ if [ -d "/runpod-volume/models" ] && [ -d "/comfyui/models" ] && [ ! -L "/comfyu
     rm -rf /comfyui/models
     cd /comfyui && ln -s /runpod-volume/models models
 fi
+
+export OLLAMA_MODELS="/runpod-volume/models/ollama"
+mkdir -p /runpod-volume/models/ollama
+# Install Ollama dependencies and Ollama itself
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull the required model
+ollama pull deepseek-r1:8b &
 
 if [ -d "/runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts" ] && [ ! -L "/comfyui/custom_nodes/comfyui_controlnet_aux/ckpts" ]; then
     echo "runpod-worker-comfy: Removing /comfyui/custom_nodes/comfyui_controlnet_aux/ckpts directory and creating symlink to /runpod-volume/custom_nodes/comfyui_controlnet_aux/ckpts"
