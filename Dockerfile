@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y \
     libgl1 \
     libglib2.0-0 \
     git \
-    wget
+    wget \
+    curl \
+    fuse-overlayfs
 
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
@@ -48,7 +50,12 @@ RUN pip3 install --no-cache-dir albumentations
 RUN pip3 install --no-cache-dir scikit-learn
 RUN pip3 install --no-cache-dir matplotlib
 RUN pip3 install --no-cache-dir 'numpy<2'
-    
+RUN pip3 install --no-cache-dir accelerate
+RUN pip3 install --no-cache-dir diffusers
+RUN pip3 install --no-cache-dir OpenEXR
+RUN pip3 install --no-cache-dir Imath
+RUN pip3 install --no-cache-dir pathlib
+RUN pip3 install --no-cache-dir timm
 
 # Install runpod
 RUN pip3 install runpod requests websocket-client
@@ -78,40 +85,6 @@ RUN for dir in */; do \
 WORKDIR /comfyui
 RUN pip3 install --upgrade -r requirements.txt
 
-RUN pip3 install ninja
-RUN pip3 install --no-cache-dir importlib_metadata
-RUN pip3 install --no-cache-dir huggingface_hub
-RUN pip3 install --no-cache-dir scipy
-RUN pip3 install --no-cache-dir 'opencv-python>=4.7.0.72'
-RUN pip3 install --no-cache-dir filelock
-RUN pip3 install --no-cache-dir numpy
-RUN pip3 install --no-cache-dir Pillow
-RUN pip3 install --no-cache-dir einops
-RUN pip3 install --no-cache-dir pyyaml
-RUN pip3 install --no-cache-dir scikit-image
-RUN pip3 install --no-cache-dir python-dateutil
-RUN pip3 install --no-cache-dir mediapipe
-RUN pip3 install --no-cache-dir svglib
-RUN pip3 install --no-cache-dir fvcore
-RUN pip3 install --no-cache-dir yapf
-RUN pip3 install --no-cache-dir omegaconf
-RUN pip3 install --no-cache-dir ftfy
-RUN pip3 install --no-cache-dir addict
-RUN pip3 install --no-cache-dir yacs
-RUN pip3 install --no-cache-dir 'trimesh[easy]'
-RUN pip3 install --no-cache-dir albumentations
-RUN pip3 install --no-cache-dir scikit-learn
-RUN pip3 install --no-cache-dir matplotlib
-RUN pip3 install --no-cache-dir accelerate
-RUN pip3 install --no-cache-dir diffusers
-RUN pip3 install --no-cache-dir 'numpy<2'
-RUN pip3 install --no-cache-dir OpenEXR
-RUN pip3 install --no-cache-dir Imath
-RUN pip3 install --no-cache-dir pathlib
-RUN pip3 install --no-cache-dir timm
-
-RUN pip3 install --upgrade --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
 # Support for the network volume
 # ADD src/extra_model_paths.yaml ./
 
@@ -127,9 +100,11 @@ FROM base as final
 
 RUN python3 -u /comfyui/main.py --cpu --quick-test-for-ci
 
-# install ollama
+# Install Ollama dependencies and Ollama itself
 RUN curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull the required model
 RUN ollama pull deepseek-r1:8b
 
-# Start the container
-CMD /start.sh
+# Ensure the Ollama service starts
+CMD ollama serve & /start.sh
