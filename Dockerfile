@@ -96,7 +96,7 @@ RUN pip3 install --upgrade -r requirements.txt
 WORKDIR /
 
 # Add the start and the handler
-ADD src/start.sh src/rp_handler.py src/comfy_websockets.py test_input.json ./
+ADD src/start.sh src/rp_handler.py src/comfy_websockets.py src/comfyclient.py test_input.json ./
 RUN chmod +x /start.sh
 
 # Stage 3: Final image

@@ -11,6 +11,7 @@ import websocket
 import json
 import urllib.request
 import urllib.parse
+import comfyclient
 
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
@@ -25,113 +26,6 @@ COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
 # see https://docs.runpod.io/docs/handler-additional-controls#refresh-worker
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
-
-
-class ComfyWebsocket:
-    def __init__(self, server_address, client_id):
-        """
-        Initialize a new ComfyWebsocket instance.
-
-        Args:
-            self.server_address (str): The address of the server to connect to.
-        """
-        self.server_address = server_address
-        self.client_id = client_id
-        self.ws = websocket.WebSocket()
-        self.ws.connect("ws://{}/ws?clientId={}".format(self.server_address, self.client_id))
-
-    def queue_prompt(self, prompt):
-        """
-        Queue a prompt to the server and retrieve the response.
-
-        Args:
-          prompt (str): The prompt to be queued.
-
-        Returns:
-          dict: The server's response to the queued prompt.
-        """
-        p = {"prompt": prompt, "self.client_id": self.client_id}
-        data = json.dumps(p).encode('utf-8')
-        req = urllib.request.Request("http://{}/prompt".format(self.server_address), data=data)
-        return json.loads(urllib.request.urlopen(req).read())
-
-    def get_image(self, data={"filename": "", "subfolder": "", "type": ""}):
-        """
-        Retrieve an image from the server based on the provided data.
-
-        Args:
-            data (dict): A dictionary containing the following keys:
-                - filename (str): The name of the file to retrieve.
-                - subfolder (str): The subfolder where the file is located.
-                - type (str): The type of the file.
-
-        Returns:
-            bytes: The
-            raw image data retrieved from the server.
-        """
-        url_values = urllib.parse.urlencode(data)
-        with urllib.request.urlopen("http://{}/view?{}".format(self.server_address, url_values)) as response:
-            return response.read()
-
-    def get_history(self, prompt_id):
-        """
-        Retrieve the history of a given prompt using its ID
-
-        Args:
-        prompt_id (str): The ID of the prompt whose history is to be retrieved
-
-        Returns:
-        dict: The history of the prompt, containing all the processing steps and results
-        """
-        with urllib.request.urlopen(f"http://{self.server_address}/history/{prompt_id}") as response:
-            return json.loads(response.read())
-
-    def get_images(self, prompt):
-        ws = websocket.WebSocket()
-        ws.connect("ws://{}/ws?clientId={}".format(self.server_address, self.client_id))
-
-        try:
-            prompt_id = self.queue_prompt(prompt)['prompt_id']
-            output_images = {}
-            current_node = ""
-            while True:
-                history = self.get_history(prompt_id)
-                if prompt_id in history and history[prompt_id] is not None:
-                    break
-                out = ws.recv()
-                if isinstance(out, str):
-                    message = json.loads(out)
-                    if message['type'] == 'executing':
-                        data = message['data']
-                        if data['prompt_id'] == prompt_id:
-                            if data['node'] is None:
-                                break  # Execution is done
-                            else:
-                                current_node = data['node']
-                    elif message['type'] == 'error':
-                        # print the message as formatted json
-                        print(json.dumps(message, indent=4))
-                        raise Exception(message)
-
-                else:
-                    if current_node == 'save_image_websocket_node':
-                        images_output = output_images.get(current_node, [])
-                        images_output.append(out[8:])
-                        output_images[current_node] = images_output
-
-            history = self.get_history(prompt_id)
-            images = []
-            # iterate over history[prompt_id]['output'] to get all of the output nodes
-            outputs = history[prompt_id]['outputs']
-            for node_id in outputs:
-                # iterate over the output nodes to get the image data
-                for image in outputs[node_id]['images']:
-                    if image['type'] == 'output':
-                        images.append(image)
-        finally:
-            ws.close()
-
-        return images
 
 
 def validate_input(job_input):
@@ -348,27 +242,28 @@ def process_output_images(comfy, output_images, job_id):
     print(f"runpod-worker-comfy - image generation is done")
 
     encoded_images = []
-    for image in output_images:
-        if os.environ.get("BUCKET_ENDPOINT_URL", False):
-            endpoint = os.environ.get("BUCKET_ENDPOINT_URL")
-            print(f"runpod-worker-comfy - uploading image: {image['filename']} to {endpoint}")
-            output_image = os.path.join(image["subfolder"], image["filename"])
-            local_image_path = f"{COMFY_OUTPUT_PATH}/{output_image}"
-            # URL to image in AWS S3
-            url = rp_upload.upload_image(job_id, local_image_path)
-            encoded_images.append({
-                "filename": image['filename'],
-                "url": url,
-                "type": image['type'],
-                "subfolder": image['subfolder']
-            })
-            print(
-                "runpod-worker-comfy - the image was generated and uploaded to AWS S3 at %s" % url
-            )
-        else:
-            print("runpod-worker-comfy - encoding image: ", image['filename'])
-            image_data = comfy.get_image(image)
-            encoded_images.append(base64.b64encode(image_data).decode("utf-8"))
+    for output in comfy.outputs:
+        for image in output.images:
+            if os.environ.get("BUCKET_ENDPOINT_URL", False):
+                endpoint = os.environ.get("BUCKET_ENDPOINT_URL")
+                print(f"runpod-worker-comfy - uploading image: {image['filename']} to {endpoint}")
+                output_image = os.path.join(image["subfolder"], image["filename"])
+                local_image_path = f"{COMFY_OUTPUT_PATH}/{output_image}"
+                # URL to image in AWS S3
+                url = rp_upload.upload_image(job_id, local_image_path)
+                encoded_images.append({
+                    "filename": image['filename'],
+                    "url": url,
+                    "type": image['type'],
+                    "subfolder": image['subfolder']
+                })
+                print(
+                    "runpod-worker-comfy - the image was generated and uploaded to AWS S3 at %s" % url
+                )
+            else:
+                print("runpod-worker-comfy - encoding image: ", image['filename'])
+                image_data = comfy.get_image(image)
+                encoded_images.append(base64.b64encode(image_data).decode("utf-8"))
         
         
     # The image is in the output folder
@@ -424,12 +319,28 @@ def handler(job):
         return upload_result
 
     job_id = job["id"];
-    comfy = ComfyWebsocket(COMFY_HOST, job_id)
+    client = comfyclient.ComfyClient(COMFY_HOST)
+
     print("runpod-worker-comfy - sending prompt to ComfyUI")
     print(f"runpod-worker-comfy - workflow: {workflow}")
-    images = comfy.get_images(workflow)
+
+    client.submit(workflow, job_id)
+    while True:
+        status = client.waitForStatus()
+        if client.is_finished():
+            break
+        print(f"runpod-worker-comfy - {status}")    
+    
+    # if there was an error return  an error result
+    if status["status"] == "error":
+        return {
+            "status": "error",
+            "message": status['data']['error']['message'],
+            "details": status['data']['error']['details']
+        }
+
     # Get the generated image and return it as URL in an AWS bucket or as base64
-    images_result = process_output_images(comfy, images, job_id)
+    images_result = process_output_images(client, images, job_id)
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}
 
