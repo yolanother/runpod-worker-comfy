@@ -32,7 +32,7 @@ class ComfyClient:
                 self.current_status["outputs"] = self.outputs
                 self.status_event.set()
                 self._close_ws()
-        if msg['type'] == 'executing' and msg['data']['node'] is None:
+        elif msg['type'] == 'executing' and msg['data']['node'] is None:
             queue_remaining = msg['data'].get('status', {}).get('exec_info', {}).get('queue_remaining', 0)
             new_status = "queued" if queue_remaining > 0 else "completed"
             with self.lock:
