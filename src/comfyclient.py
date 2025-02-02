@@ -67,6 +67,24 @@ class ComfyClient:
         if self.ws:
             self.ws.close()
             self.ws = None
+    
+    def get_image(self, data={"filename": "", "subfolder": "", "type": ""}):
+        """
+        Retrieve an image from the server based on the provided data.
+
+        Args:
+            data (dict): A dictionary containing the following keys:
+                - filename (str): The name of the file to retrieve.
+                - subfolder (str): The subfolder where the file is located.
+                - type (str): The type of the file.
+
+        Returns:
+            bytes: The
+            raw image data retrieved from the server.
+        """
+        url_values = urllib.parse.urlencode(data)
+        with urllib.request.urlopen("http://{}/view?{}".format(self.server_address, url_values)) as response:
+            return response.read()
 
     def submit(self, prompt, client_id=None):
         self.outputs = []
@@ -93,7 +111,7 @@ class ComfyClient:
             )
             ws_thread = threading.Thread(target=self.ws.run_forever, daemon=True)
             ws_thread.start()
-            
+            print(f"Websocket - Monitoring Prompt ID: {self.prompt_id}")
             return self.prompt_id
         except Exception as e:
             with self.lock:
@@ -105,6 +123,7 @@ class ComfyClient:
                     message = str(e)
                 self.current_status = {"status": "fail", "data": message}
                 self.status_event.set()
+                print(f"Failed to submit prompt: {e}")
             return None
 
     def waitForStatus(self):

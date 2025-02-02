@@ -243,7 +243,8 @@ def process_output_images(comfy, output_images, job_id):
 
     encoded_images = []
     for output in comfy.outputs:
-        for image in output.images:
+        print(f"runpod-worker-comfy - output: {output}")
+        for image in output['images']:
             if os.environ.get("BUCKET_ENDPOINT_URL", False):
                 endpoint = os.environ.get("BUCKET_ENDPOINT_URL")
                 print(f"runpod-worker-comfy - uploading image: {image['filename']} to {endpoint}")
@@ -262,7 +263,17 @@ def process_output_images(comfy, output_images, job_id):
                 )
             else:
                 print("runpod-worker-comfy - encoding image: ", image['filename'])
-                image_data = comfy.get_image(image)
+                # Get path by combining output path and the image filename
+                output_image = os.path.join(image["subfolder"], image["filename"])
+                file_path = f"{COMFY_OUTPUT_PATH}/{output_image}"
+                print(f"runpod-worker-comfy - file path: {file_path}")
+                # if the file path exists use it
+                if os.path.exists(file_path):
+                    image_data = open(file_path, "rb").read()
+                else:
+                    # otherwise, load it from comfy.get_image(image)
+                    image_data = comfy.get_image(image)
+                
                 encoded_images.append(base64.b64encode(image_data).decode("utf-8"))
         
         
