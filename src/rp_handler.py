@@ -250,6 +250,11 @@ def process_output_images(comfy, output_images, job_id):
                 print(f"runpod-worker-comfy - uploading image: {image['filename']} to {endpoint}")
                 output_image = os.path.join(image["subfolder"], image["filename"])
                 local_image_path = f"{COMFY_OUTPUT_PATH}/{output_image}"
+                # If the file doesn't exist, download it from comfy.get_image(image)
+                if not os.path.exists(local_image_path):
+                    image_data = comfy.get_image(image)
+                    with open(local_image_path, "wb") as f:
+                        f.write(image_data)
                 # URL to image in AWS S3
                 url = rp_upload.upload_image(job_id, local_image_path)
                 encoded_images.append({
