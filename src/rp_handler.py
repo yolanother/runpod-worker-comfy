@@ -298,6 +298,22 @@ def process_output_images(comfy, output_images, job_id):
             "status": "success",
             "message": "No images saved."
         }
+    
+def send_status(validated_data, status):
+    if 'status_callback' in validated_data and validated_data["status_callback"] is not None:
+        # Send the result to the callback URL
+        callback_url = validated_data["status_callback"]
+        response = requests.post(callback_url, json=status)
+        print(f"runpod-worker-comfy - Callback response: {response.text}")
+
+def send_result_callback(validated_data, result):
+    print("runpod-worker-comfy - job completed")
+    if 'callback' in validated_data and validated_data["callback"] is not None:
+        print(f"runpod-worker-comfy - Sending result to callback URL: {validated_data['callback']}")
+        # Send the result to the callback URL
+        callback_url = validated_data["callback"]
+        response = requests.post(callback_url, json=result)
+        print(f"runpod-worker-comfy - Callback response: {response.text}")
 
 def handler(job):
     """
@@ -354,11 +370,7 @@ def handler(job):
         strStatus = json.dumps(status)
         if(status != lastStatus):
             print(f"runpod-worker-comfy - Status => {status}")
-            if 'status_callback' in validated_data and validated_data["status_callback"] is not None:
-                # Send the result to the callback URL
-                callback_url = validated_data["status_callback"]
-                response = requests.post(callback_url, json=result)
-                print(f"runpod-worker-comfy - Callback response: {response.text}")
+            send_status(validated_data, status)
 
         lastStatus = strStatus
             
@@ -368,24 +380,21 @@ def handler(job):
     
     # if there was an error return  an error result
     if status["status"] == "error":
-        return {
+        send_status(validated_data, status)
+        result = {
             "status": "error",
             "message": status['data']['error']['message'],
             "details": status['data']['error']['details']
         }
+        send_result_callback(validated_data, result)
+        return result
 
     # Get the generated image and return it as URL in an AWS bucket or as base64
     images_result = process_output_images(client, images, job_id)
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}
 
-    print("runpod-worker-comfy - job completed")
-    if 'callback' in validated_data and validated_data["callback"] is not None:
-        print(f"runpod-worker-comfy - Sending result to callback URL: {validated_data['callback']}")
-        # Send the result to the callback URL
-        callback_url = validated_data["callback"]
-        response = requests.post(callback_url, json=result)
-        print(f"runpod-worker-comfy - Callback response: {response.text}")
+    send_result_callback(validated_data, result)
 
     return result
 
