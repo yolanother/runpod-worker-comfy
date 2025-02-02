@@ -329,7 +329,9 @@ def handler(job):
         status = client.waitForStatus()
         if client.is_finished():
             break
-        print(f"runpod-worker-comfy - {status}")    
+        print(f"runpod-worker-comfy - Status => {status}")
+    
+    print(f"runpod-worker-comfy - Finished => {status}")
     
     # if there was an error return  an error result
     if status["status"] == "error":

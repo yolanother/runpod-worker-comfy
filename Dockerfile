@@ -96,8 +96,10 @@ RUN pip3 install --upgrade -r requirements.txt
 WORKDIR /
 
 # Add the start and the handler
-ADD src/start.sh src/rp_handler.py src/comfy_websockets.py src/comfyclient.py test_input.json ./
+ADD src/start.sh src/rp_handler.py src/comfy_websockets.py src/comfyclient.py test_input.json src/install-ollama.sh ./
 RUN chmod +x /start.sh
+RUN chmod +x /install-ollama.sh
+RUN /install-ollama.sh
 
 # Stage 3: Final image
 FROM base as final
