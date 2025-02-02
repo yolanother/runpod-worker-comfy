@@ -325,6 +325,7 @@ def handler(job):
     print(f"runpod-worker-comfy - workflow: {workflow}")
 
     client.submit(workflow, job_id)
+    print ("runpod-worker-comfy - waiting for the job to finish")
     while True:
         status = client.waitForStatus()
         if client.is_finished():

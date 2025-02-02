@@ -19,6 +19,7 @@ class ComfyClient:
         self.outputs = []
 
     def _on_message(self, ws, message):
+        print("Websocket - Received message: ", message)
         msg = json.loads(message)
         with self.lock:
             self.last_event_time = threading.Event()
@@ -50,17 +51,17 @@ class ComfyClient:
                 self.status_event.set()
 
     def _on_error(self, ws, error):
-        print(f"WebSocket error: {error}")
+        print(f"Websocket - error: {error}")
         with self.lock:
             self.current_status = {"status": "error", "data": str(error)}
             self.status_event.set()
             self._close_ws()
 
     def _on_close(self, ws, close_status_code, close_msg):
-        print("WebSocket closed")
+        print("Websocket - closed")
 
     def _on_open(self, ws):
-        print("WebSocket connection opened")
+        print("Websocket - connection opened")
 
     def _close_ws(self):
         if self.ws:
