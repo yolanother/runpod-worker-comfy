@@ -28,6 +28,8 @@ class ComfyClient:
             return
         if msg['type'] == 'execution_success':
             with self.lock:
+                # trim out any empty outputs
+                self.outputs = [output for output in self.outputs if output]
                 self.current_status = {"status": "completed", "data": msg}
                 self.current_status["outputs"] = self.outputs
                 self.status_event.set()

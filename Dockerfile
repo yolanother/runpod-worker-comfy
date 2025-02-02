@@ -72,11 +72,10 @@ ADD "https://api.github.com/repos/yolanother/comfyui-custom-nodes/commits?per_pa
 RUN echo "Installing custom nodes..."
 RUN rm -rf /comfyui/custom_nodes
 RUN git clone https://github.com/yolanother/comfyui-custom-nodes /comfyui/custom_nodes
-RUN touch /comfyui/custom_nodes/.git/__init__.py
-RUN touch /comfyui/custom_nodes/__init__.py
 
 WORKDIR /comfyui/custom_nodes
 RUN git submodule update --init --recursive
+RUN rm -rf /comfyui/custom_nodes/.git
 
 WORKDIR /comfyui/custom_nodes
 RUN for dir in */; do \
