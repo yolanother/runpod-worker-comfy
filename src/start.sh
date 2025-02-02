@@ -16,6 +16,8 @@ fi
 
 export OLLAMA_MODELS="/runpod-volume/models/ollama"
 mkdir -p /runpod-volume/models/ollama
+sudo systemctl daemon-reload
+sudo systemctl start ollama
 
 # Pull the required model
 ollama pull deepseek-r1:8b &
