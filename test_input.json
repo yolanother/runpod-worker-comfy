@@ -3,7 +3,7 @@
     "workflow": {
       "3": {
         "inputs": {
-          "seed": 2323343,
+          "seed": 223343,
           "steps": 20,
           "cfg": 8,
           "sampler_name": "euler",

@@ -20,7 +20,6 @@ class ComfyClient:
         self.status_change_callback = None
 
     def _on_message(self, ws, message):
-        print("Websocket - Received message: ", message)
         msg = json.loads(message)
         with self.lock:
             self.last_event_time = threading.Event()

@@ -245,6 +245,9 @@ def process_output_images(comfy, output_images, job_id):
     for output in comfy.outputs:
         print(f"runpod-worker-comfy - output: {output}")
         for image in output['images']:
+            # if image type is temp then skip
+            if image['type'] == 'temp':
+                continue
             if os.environ.get("BUCKET_ENDPOINT_URL", False):
                 endpoint = os.environ.get("BUCKET_ENDPOINT_URL")
                 print(f"runpod-worker-comfy - uploading image: {image['filename']} to {endpoint}")
@@ -344,10 +347,21 @@ def handler(job):
     client.submit(workflow, job_id)
     print ("runpod-worker-comfy - waiting for the job to finish")
     status = client.waitForStatus()
+    lastStatus = json.dumps(status)
     while True:
         if client.is_finished():
             break
-        print(f"runpod-worker-comfy - Status => {status}")
+        strStatus = json.dumps(status)
+        if(status != lastStatus):
+            print(f"runpod-worker-comfy - Status => {status}")
+            if 'status_callback' in validated_data and validated_data["status_callback"] is not None:
+                # Send the result to the callback URL
+                callback_url = validated_data["status_callback"]
+                response = requests.post(callback_url, json=result)
+                print(f"runpod-worker-comfy - Callback response: {response.text}")
+
+        lastStatus = strStatus
+            
         time.sleep(0.5)
     
     print(f"runpod-worker-comfy - Finished => {status}")
