@@ -77,6 +77,8 @@ WORKDIR /comfyui/custom_nodes
 RUN git submodule update --init --recursive
 RUN rm -rf /comfyui/custom_nodes/.git
 
+RUN df -h
+
 WORKDIR /comfyui/custom_nodes
 RUN for dir in */; do \
         if [ -f "${dir}requirements.txt" ]; then \
@@ -86,7 +88,11 @@ RUN for dir in */; do \
     done
 
 WORKDIR /comfyui
+
+RUN df -h
 RUN pip3 install --upgrade -r requirements.txt
+
+RUN df -h
 
 # Support for the network volume
 # ADD src/extra_model_paths.yaml ./
