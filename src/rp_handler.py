@@ -244,7 +244,11 @@ def process_output_images(comfy, output_images, job_id):
     encoded_images = []
     for output in comfy.outputs:
         print(f"runpod-worker-comfy - output: {output}")
+        if output is None:
+            continue
         for image in output['images']:
+            if image is None:
+                continue
             # if image type is temp then skip
             if image['type'] == 'temp':
                 continue
