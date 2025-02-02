@@ -331,17 +331,19 @@ def handler(job):
 
     job_id = job["id"];
     client = comfyclient.ComfyClient(COMFY_HOST)
+    client.status_change_callback = lambda status: print(f"runpod-worker-comfy - Status Changed => {status}")
 
     print("runpod-worker-comfy - sending prompt to ComfyUI")
     print(f"runpod-worker-comfy - workflow: {workflow}")
 
     client.submit(workflow, job_id)
     print ("runpod-worker-comfy - waiting for the job to finish")
+    status = client.waitForStatus()
     while True:
-        status = client.waitForStatus()
         if client.is_finished():
             break
         print(f"runpod-worker-comfy - Status => {status}")
+        time.sleep(0.5)
     
     print(f"runpod-worker-comfy - Finished => {status}")
     

@@ -17,6 +17,7 @@ class ComfyClient:
         self.timeout = timeout
         self.last_event_time = None
         self.outputs = []
+        self.status_change_callback = None
 
     def _on_message(self, ws, message):
         print("Websocket - Received message: ", message)
@@ -32,6 +33,7 @@ class ComfyClient:
                 self.current_status["outputs"] = self.outputs
                 self.status_event.set()
                 self._close_ws()
+                self.onStatusChanged(self.current_status)
         elif msg['type'] == 'executing' and msg['data']['node'] is None:
             queue_remaining = msg['data'].get('status', {}).get('exec_info', {}).get('queue_remaining', 0)
             new_status = "queued" if queue_remaining > 0 else "completed"
@@ -41,6 +43,7 @@ class ComfyClient:
                 if new_status == "completed":
                     self.current_status["outputs"] = self.outputs
                 self.status_event.set()
+                self.onStatusChanged(self.current_status)
                 if new_status == "completed":
                     self._close_ws()
         elif msg['type'] == 'status' and msg['data'].get('sid') == self.client_id:
@@ -49,12 +52,14 @@ class ComfyClient:
             with self.lock:
                 self.current_status = {"status": new_status, "data": msg}
                 self.status_event.set()
+                self.onStatusChanged(self.current_status)
         else:
             with self.lock:
                 if msg['type'] == 'executed':
                     self.outputs.append(msg['data']['output'])
                 self.current_status = {"status": "processing", "data": msg}
                 self.status_event.set()
+                self.onStatusChanged(self.current_status)
 
     def _on_error(self, ws, error):
         print(f"Websocket - error: {error}")
@@ -62,6 +67,11 @@ class ComfyClient:
             self.current_status = {"status": "error", "data": str(error)}
             self.status_event.set()
             self._close_ws()
+            self.onStatusChanged(self.current_status)
+    
+    def onStatusChanged(self, status):
+        if self.status_change_callback:
+            self.status_change_callback(status)
 
     def _on_close(self, ws, close_status_code, close_msg):
         print("Websocket - closed")
@@ -131,6 +141,10 @@ class ComfyClient:
                 self.status_event.set()
                 print(f"Failed to submit prompt: {e}")
             return None
+    
+    def getStatus(self):
+        with self.lock:
+            return self.current_status
 
     def waitForStatus(self):
         if self.is_finished():
