@@ -14,11 +14,12 @@ if [ -d "/runpod-volume/models" ] && [ -d "/comfyui/models" ] && [ ! -L "/comfyu
     cd /comfyui && ln -s /runpod-volume/models models
 fi
 
+echo "runpod-worker-comfy: Starting Ollama"
 export OLLAMA_MODELS="/runpod-volume/models/ollama"
 mkdir -p /runpod-volume/models/ollama
-sudo systemctl daemon-reload
-sudo systemctl start ollama
+ollama serve
 
+echo "runpod-worker-comfy: Pulling DeepSeek model"
 # Pull the required model
 ollama pull deepseek-r1:8b &
 
