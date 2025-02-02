@@ -17,7 +17,7 @@ fi
 echo "runpod-worker-comfy: Starting Ollama"
 export OLLAMA_MODELS="/runpod-volume/models/ollama"
 mkdir -p /runpod-volume/models/ollama
-ollama serve
+ollama serve &
 
 echo "runpod-worker-comfy: Pulling DeepSeek model"
 # Pull the required model
