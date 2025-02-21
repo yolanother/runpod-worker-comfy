@@ -61,6 +61,8 @@ RUN pip3 install --no-cache-dir surrealist
 RUN pip3 install --no-cache-dir aisuite
 RUN pip3 install --no-cache-dir ollama
 RUN pip3 install --no-cache-dir git+https://github.com/deepseek-ai/Janus.git
+RUN pip3 install --no-cache-dir groq
+RUN pip3 install --no-cache-dir openai
 
 # Install runpod
 RUN pip3 install runpod requests websocket-client
