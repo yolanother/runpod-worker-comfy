@@ -60,6 +60,7 @@ RUN pip3 install --no-cache-dir deepdiff
 RUN pip3 install --no-cache-dir surrealist
 RUN pip3 install --no-cache-dir aisuite
 RUN pip3 install --no-cache-dir ollama
+RUN pip3 install --no-cache-dir git+https://github.com/deepseek-ai/Janus.git
 
 # Install runpod
 RUN pip3 install runpod requests websocket-client
@@ -105,6 +106,8 @@ ADD src/start.sh src/rp_handler.py src/comfy_websockets.py src/comfyclient.py te
 RUN chmod +x /start.sh
 RUN chmod +x /install-ollama.sh
 RUN /install-ollama.sh
+
+RUN df -h
 
 # Stage 3: Final image
 FROM base as final
