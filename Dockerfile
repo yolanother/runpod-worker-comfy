@@ -66,9 +66,7 @@ RUN pip3 install --no-cache-dir openai
 RUN pip3 install --no-cache-dir sentencepiece
 
 # Install runpod
-RUN pip3 install runpod \
- requests \
- websocket-client
+RUN pip3 install runpod requests websocket-client
 
 ADD "https://api.github.com/repos/comfyanonymous/ComfyUI/commits?per_page=1" latest_commit
 # Clone ComfyUI repository
